@@ -1,9 +1,15 @@
 spring:
   application:
     name: app-microservice-location-producer
+  webflux:
+    base-path: /app-microservice-auth
 
 server:
   port: 8080
+
+logging:
+  level:
+    ROOT: INFO
 
 management:
   endpoints:

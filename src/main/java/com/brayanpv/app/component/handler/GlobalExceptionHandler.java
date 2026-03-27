@@ -1,9 +1,7 @@
 package com.brayanpv.app.component.handler;
+import com.brayanpv.app.model.response.generic.ApiResponse;
 import org.springframework.http.ResponseEntity;
-import reactor.core.publisher.Mono;
-import com.brayanspv.auth.model.response.generic.ApiResponse;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,7 +17,7 @@ import java.util.regex.Pattern;
 
 @ControllerAdvice
 @Log4j2
-public interface GlobalExceptionHandler {
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ServerWebInputException.class)
     public ResponseEntity<?> handleServerWebInputException(ServerWebInputException e) {

@@ -1,4 +1,4 @@
-package com.brayanpv.app.model.response;
+package com.brayanpv.app.model.response.generic;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,9 +11,9 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExampleResponse implements Serializable {
-
-    private String id;
-    private String name;
+public class ApiResponse implements Serializable {
+    private Long dateTime;
+    private int code;
+    private Object data;
 
 }
