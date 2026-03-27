@@ -3,6 +3,11 @@ spring:
     name: app-microservice-location-producer
   webflux:
     base-path: /app-microservice-auth
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/landscapedb
+    username: landscape
+    password: landscape
+
 
 server:
   port: 8080
@@ -19,3 +24,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+jwt:
+  secret: ${JWT_KEY:MsUEV8IkLNB7NkFB0iVHtaCNrn98CTzYIz/5w4te3J0=}
+  expiration: 86400000  # 24 horas en milisegundos
