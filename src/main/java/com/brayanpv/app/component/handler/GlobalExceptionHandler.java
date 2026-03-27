@@ -1,4 +1,4 @@
-package com.brayanpv.app-microservice-location-producer.component.handler;
+package com.brayanpv.app.component.handler;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 import com.brayanspv.auth.model.response.generic.ApiResponse;

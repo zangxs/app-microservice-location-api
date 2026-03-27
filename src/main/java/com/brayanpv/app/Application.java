@@ -1,4 +1,4 @@
-package com.brayanpv.app-microservice-location-producer;
+package com.brayanpv.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

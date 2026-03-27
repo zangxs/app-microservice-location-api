@@ -1,6 +1,6 @@
-package com.brayanpv.app-microservice-location-producer.controller.implementations;
+package com.brayanpv.app.controller.implementations;
 
-import com.brayanpv.app-microservice-location-producer.controller.contracts.IExampleController;
+import com.brayanpv.app.controller.contracts.IExampleController;
 import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 

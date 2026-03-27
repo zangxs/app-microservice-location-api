@@ -1,4 +1,4 @@
-package com.brayanpv.app-microservice-location-producer.model.response;
+package com.brayanpv.app.model.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExampleResponse implements Serializable {
+public class ExampleRequest implements Serializable {
 
     private String id;
     private String name;

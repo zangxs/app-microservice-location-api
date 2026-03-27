@@ -1,6 +1,6 @@
-package com.brayanpv.app-microservice-location-producer.router;
+package com.brayanpv.app.router;
 
-import com.brayanpv.app-microservice-location-producer.handler.ExampleHandler;
+import com.brayanpv.app.handler.ExampleHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;

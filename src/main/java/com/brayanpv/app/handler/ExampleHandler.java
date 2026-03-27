@@ -1,6 +1,6 @@
-package com.brayanpv.app-microservice-location-producer.handler;
+package com.brayanpv.app.handler;
 
-import com.brayanpv.app-microservice-location-producer.model.ExampleModel;
+import com.brayanpv.app.model.ExampleModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
