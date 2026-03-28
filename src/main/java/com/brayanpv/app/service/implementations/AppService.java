@@ -1,10 +1,12 @@
 package com.brayanpv.app.service.implementations;
 
+import com.brayanpv.app.model.message.LandscapeEvent;
 import com.brayanpv.app.model.request.LandscapeRequest;
 import com.brayanpv.app.model.response.LandscapeResponse;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
 import com.brayanpv.app.repositories.entities.LandscapeEntity;
 import com.brayanpv.app.service.contracts.IAppService;
+import com.brayanpv.app.service.contracts.IRabbitMQService;
 import com.brayanpv.app.service.contracts.IS3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -21,7 +23,7 @@ public class AppService implements IAppService {
 
     private final IS3Service s3Service;
     private final ILandscapeRepository landscapeRepository;
-
+    private final IRabbitMQService rabbitMQService;
 
     @Override
     public Mono<LandscapeResponse> uploadFile(LandscapeRequest request) {
@@ -47,9 +49,22 @@ public class AppService implements IAppService {
                     })
                     .map(saved -> {
                         log.info("Landscape saved with id: {}", saved.getId());
-                        // TODO: publicar en RabbitMQ
-                        return new LandscapeResponse(saved.getId(), "PENDING");
-                    });
+                        log.info("Landscape saved with id: {}", saved.getId());
+                        LandscapeEvent event = new LandscapeEvent(
+                                saved.getId(),
+                                userId,
+                                ctx.get("email"),
+                                saved.getTitle(),
+                                saved.getDescription(),
+                                saved.getLatitude(),
+                                saved.getLongitude(),
+                                saved.getImageUrl()
+                        );
+                        return Mono.just(event);
+                    }).flatMap(eventMono -> eventMono.flatMap(event ->
+                            rabbitMQService.publishLandscape(event)
+                                    .thenReturn(new LandscapeResponse(event.landscapeId(), "PENDING"))
+                    ));
         });
     }
 }
