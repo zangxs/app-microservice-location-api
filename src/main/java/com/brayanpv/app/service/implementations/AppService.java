@@ -19,7 +19,7 @@ import java.time.ZoneOffset;
 @RequiredArgsConstructor
 public class AppService implements IAppService {
 
-    IS3Service s3Service;
+    private final IS3Service s3Service;
     private final ILandscapeRepository landscapeRepository;
 
 

@@ -32,6 +32,6 @@ jwt:
 
 minio:
   url: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
+  access-key: admin
+  secret-key: password123
   bucket: landscapes
