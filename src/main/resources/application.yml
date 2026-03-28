@@ -2,11 +2,17 @@ spring:
   application:
     name: app-microservice-location-producer
   webflux:
-    base-path: /app-microservice-auth
+    base-path: /app-microservice-location
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/landscapedb
     username: landscape
     password: landscape
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
 
 
 server:
@@ -35,3 +41,9 @@ minio:
   access-key: admin
   secret-key: password123
   bucket: landscapes
+
+app:
+  rabbitmq:
+    exchange: landscape.exchange
+    queue: landscape.pending.queue
+    routing-key: landscape.pending
