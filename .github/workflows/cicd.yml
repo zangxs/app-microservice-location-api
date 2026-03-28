@@ -1,0 +1,84 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      KEY_VALUE: ${{ secrets.KEY_VALUE }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Instalar dependencias con Maven
+        run: mvn dependency:resolve
+
+      - name: Ejecutar tests con Maven
+        run: mvn test
+
+      #- name: Analizar vulnerabilidades con OWASP Dependency Check
+      #  run: mvn org.owasp:dependency-check-maven:6.4.0:check
+
+      - name: Generar informe de Cobertura
+        run: mvn site
+
+      - name: Publicar informe en GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-jacoco
+          path: target/site/jacoco/index.html
+
+  #sonar:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout code
+  #      uses: actions/checkout@v2
+
+  #    - name: Instalar dependencias con Maven
+  #      run: mvn dependency:resolve
+
+  #    - name: Ejecutar tests con Maven
+  #      run: mvn test
+
+  #    - name: Analizar vulnerabilidades con OWASP Dependency Check
+  #      run: mvn org.owasp:dependency-check-maven:6.4.0:check
+
+  #    - name: Generar informe de Cobertura
+  #      run: mvn site
+
+  #    - name: Publicar informe en GitHub Actions
+  #      uses: actions/upload-artifact@v2
+  #      with:
+  #        name: cobertura-jacoco.xml
+  #        path: target/site/jacoco/index.html
+
+  #sonarcub:
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout code
+  #      uses: actions/checkout@v2
+
+  #    - name: Instalar dependencias con Maven
+  #      run: mvn dependency:resolve
+
+  #    - name: Ejecutar tests con Maven
+  #      run: mvn test
+
+  #    - name: Analizar vulnerabilidades con OWASP Dependency Check
+  #      run: mvn org.owasp:dependency-check-maven:6.4.0:check
+
+  #    - name: Generar informe de Cobertura
+  #      run: mvn site
+
+  #    - name: Publicar informe en GitHub Actions
+  #      uses: actions/upload-artifact@v2
+  #      with:
+  #        name: cobertura-jacoco.xml
+  #        path: target/site/jacoco/index.html

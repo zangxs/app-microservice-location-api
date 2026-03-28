@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: app-microservice-location-producer
+  webflux:
+    base-path: /app-microservice-location
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/landscapedb
+    username: landscape
+    password: landscape
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+
+server:
+  port: 8001
+
+logging:
+  level:
+    ROOT: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+jwt:
+  secret: ${JWT_KEY:MsUEV8IkLNB7NkFB0iVHtaCNrn98CTzYIz/5w4te3J0=}
+  expiration: 86400000  # 24 horas en milisegundos
+
+
+minio:
+  url: http://localhost:9000
+  access-key: admin
+  secret-key: password123
+  bucket: landscapes
+
+app:
+  rabbitmq:
+    exchange: landscape.exchange
+    queue: landscape.pending.queue
+    routing-key: landscape.pending
