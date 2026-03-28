@@ -37,7 +37,14 @@ public class JWTAuthFilter implements WebFilter {
             return unauthorized(exchange, "Token inválido o expirado");
         }
 
-        return chain.filter(exchange);
+        String userId = jwtService.extractUserId(token);
+        String email = jwtService.extractEmail(token);
+
+        return chain.filter(exchange)
+                .contextWrite(ctx -> ctx
+                        .put("userId", userId)
+                        .put("email", email)
+                );
     }
 
 
