@@ -24,7 +24,7 @@ public class OutboxScheduler implements IOutboxScheduler {
     private final ObjectMapper objectMapper;
 
     @Override
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelayString = "${app.outbox.scheduler-delay:5000}")
     public void processOutbox() {
         outboxRepository.findByStatus("PENDING")
                 .filter(outbox -> outbox.getRetries() < outbox.getMaxRetries())
@@ -60,4 +60,5 @@ public class OutboxScheduler implements IOutboxScheduler {
                 null
         );
     }
+
 }

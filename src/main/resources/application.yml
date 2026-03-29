@@ -41,6 +41,8 @@ minio:
   bucket: ${MINIO_BUCKET:landscapes}
 
 app:
+  outbox:
+    scheduler-delay: ${OUTBOX_SCHEDULER_DELAY:10000}
   rabbitmq:
     exchange: landscape.exchange
     queue: landscape.pending.queue
