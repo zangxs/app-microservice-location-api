@@ -1,9 +1,8 @@
 package com.brayanpv.app.service.implementations;
 
-import com.brayanpv.app.model.message.LandscapeEvent;
 import com.brayanpv.app.service.contracts.IRabbitMQService;
+import com.brayanspv.library.model.events.LandscapeEvent;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;

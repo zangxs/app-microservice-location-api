@@ -1,6 +1,6 @@
 package com.brayanpv.app.service.contracts;
 
-import com.brayanpv.app.model.message.LandscapeEvent;
+import com.brayanspv.library.model.events.LandscapeEvent;
 import reactor.core.publisher.Mono;
 
 public interface IRabbitMQService {
