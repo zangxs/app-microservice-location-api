@@ -4,7 +4,7 @@ spring:
   webflux:
     base-path: /app-microservice-location
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/landscapedb
+    url: r2dbc:postgresql://localhost:5433/landscapedb
     username: landscape
     password: landscape
   rabbitmq:
@@ -37,9 +37,9 @@ jwt:
 
 
 minio:
-  url: http://localhost:9000
-  access-key: admin
-  secret-key: password123
+  url: https://lacteous-unexperientially-terisa.ngrok-free.dev
+  access-key: minioadmin
+  secret-key: minioadmin
   bucket: landscapes
 
 app:

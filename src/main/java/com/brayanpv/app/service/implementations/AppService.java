@@ -1,6 +1,5 @@
 package com.brayanpv.app.service.implementations;
 
-import com.brayanpv.app.model.message.LandscapeEvent;
 import com.brayanpv.app.model.request.LandscapeRequest;
 import com.brayanpv.app.model.response.LandscapeResponse;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
@@ -8,6 +7,7 @@ import com.brayanpv.app.repositories.entities.LandscapeEntity;
 import com.brayanpv.app.service.contracts.IAppService;
 import com.brayanpv.app.service.contracts.IRabbitMQService;
 import com.brayanpv.app.service.contracts.IS3Service;
+import com.brayanspv.library.model.events.LandscapeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
