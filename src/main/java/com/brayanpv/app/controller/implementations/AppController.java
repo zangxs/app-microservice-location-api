@@ -78,21 +78,23 @@ public class AppController implements IAppController {
     @Override
     @PostMapping("/landscapes/{id}/like")
     public Mono<ResponseEntity<ApiResponse>> like(@PathVariable String id, ServerWebExchange exchange) {
-        return exchange.getPrincipal()
-                .flatMap(p -> Mono.deferContextual(ctx -> {
+        log.info("request received: id={}", id);
+        return Mono.deferContextual(ctx -> {
                     String userId = ctx.get("userId");
+                    log.info("userId={}", userId);
                     return likeService.like(id, userId)
                             .thenReturn(ResponseEntity.ok(ApiResponse.builder()
                                     .dateTime(LocalDateTime.now(ZoneOffset.UTC))
                                     .code(200)
                                     .data("Like agregado")
                                     .build()));
-                }));
+                });
     }
 
     @Override
     @DeleteMapping("/landscapes/{id}/like")
     public Mono<ResponseEntity<ApiResponse>> unlike(@PathVariable String id, ServerWebExchange exchange) {
+        log.info("request received: id={}", id);
         return Mono.deferContextual(ctx -> {
             String userId = ctx.get("userId");
             return likeService.unlike(id, userId)
@@ -107,6 +109,8 @@ public class AppController implements IAppController {
     @Override
     @GetMapping("/landscapes/{id}/likes")
     public Mono<ResponseEntity<ApiResponse>> countLikes(@PathVariable String id) {
+        log.info("request received: id={}", id);
+
         return likeService.countLikes(id)
                 .map(count -> ResponseEntity.ok(ApiResponse.builder()
                         .dateTime(LocalDateTime.now(ZoneOffset.UTC))

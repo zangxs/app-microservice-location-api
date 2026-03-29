@@ -22,11 +22,13 @@ public class LandscapeLikeService implements ILandscapeLikeService {
 
     @Override
     public Mono<Void> like(String landscapeId, String userId) {
+        log.info("LandscapeLikeService userId={}", userId);
         return likeRepository.findByLandscapeIdAndUserId(
                         UUID.fromString(landscapeId), Long.parseLong(userId))
                 .flatMap(existing -> Mono.<Void>error(
                         new RuntimeException("Ya diste like a este paisaje")))
                 .switchIfEmpty(Mono.defer(() -> {
+                    log.info("estoy dando like");
                     LandscapeLikeEntity like = LandscapeLikeEntity.builder()
                             .landscapeId(UUID.fromString(landscapeId))
                             .userId(Long.parseLong(userId))
