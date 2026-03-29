@@ -5,9 +5,7 @@ import com.brayanpv.app.service.contracts.IJWTService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -22,7 +20,6 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Log4j2
 public class JWTAuthFilter implements WebFilter {
 
     private final IJWTService jwtService;
@@ -31,10 +28,6 @@ public class JWTAuthFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-
-        if (exchange.getRequest().getMethod() == HttpMethod.OPTIONS) {
-            return chain.filter(exchange);
-        }
 
         String path = exchange.getRequest().getPath().value();
 
@@ -55,13 +48,11 @@ public class JWTAuthFilter implements WebFilter {
 
         String userId = jwtService.extractUserId(token);
         String email = jwtService.extractEmail(token);
-        String username = jwtService.extractField(token, "username");
 
         return chain.filter(exchange)
                 .contextWrite(ctx -> ctx
                         .put("userId", userId)
                         .put("email", email)
-                        .put("username", username)
                 );
     }
 
@@ -91,9 +82,6 @@ public class JWTAuthFilter implements WebFilter {
     // Para paths con wildcards usa startsWith o un patrón
     private boolean isPublicPath(String path) {
         return path.equals("/app-microservice-location/landscapes/nearby")
-                || path.matches("/app-microservice-location/landscapes/.+/likes")
-                || path.startsWith("/app-microservice-location/images/")
-                || path.matches("(?i)/app-microservice-location/landscapes/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
-
+                || path.matches("/app-microservice-location/landscapes/.+/likes");
     }
 }

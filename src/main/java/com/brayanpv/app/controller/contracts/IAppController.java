@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.core.io.buffer.DataBuffer;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface IAppController {
@@ -37,13 +35,4 @@ public interface IAppController {
             ServerWebExchange exchange);
 
     Mono<ResponseEntity<ApiResponse>> countLikes(@PathVariable String id);
-
-    Flux<DataBuffer> serveImage(@PathVariable String filename);
-
-    Mono<ResponseEntity<ApiResponse>> getLandscape(@PathVariable String id,
-                                                   ServerHttpRequest httpRequest);
-
-    Mono<ResponseEntity<ApiResponse>> hasLiked(@PathVariable String id);
-
-    Mono<ResponseEntity<ApiResponse>> getMyLandscapes(ServerHttpRequest httpRequest);
 }
