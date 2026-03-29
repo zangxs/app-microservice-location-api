@@ -5,6 +5,7 @@ import com.brayanpv.app.service.contracts.ILandscapeStatusConsumer;
 import com.brayanspv.library.model.events.LandscapeStatusEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +16,7 @@ public class LandscapeStatusConsumer implements ILandscapeStatusConsumer {
     private final ILandscapeRepository landscapeRepository;
 
     @Override
+    @RabbitListener(queues = "${app.rabbitmq.status-queue}")
     public void consume(LandscapeStatusEvent event) {
         log.info("Status event received: landscapeId={}, status={}",
                 event.landscapeId(), event.status());
