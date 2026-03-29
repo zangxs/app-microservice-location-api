@@ -44,13 +44,20 @@ public class OutboxScheduler implements IOutboxScheduler {
     }
 
     private Mono<Void> markAsProcessed(OutboxEntity outbox) {
-        outbox.setStatus("PROCESSED");
-        outbox.setProcessedAt(LocalDateTime.now(ZoneOffset.UTC));
-        return outboxRepository.save(outbox).then();
+        return outboxRepository.updateOutbox(
+                outbox.getId(),
+                "PROCESSED",
+                outbox.getRetries(),
+                LocalDateTime.now(ZoneOffset.UTC)
+        );
     }
 
     private Mono<Void> incrementRetries(OutboxEntity outbox) {
-        outbox.setRetries(outbox.getRetries() + 1);
-        return outboxRepository.save(outbox).then();
+        return outboxRepository.updateOutbox(
+                outbox.getId(),
+                "PENDING",
+                outbox.getRetries() + 1,
+                null
+        );
     }
 }

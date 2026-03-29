@@ -79,7 +79,7 @@ public class AppService implements IAppService {
                                                 }
 
                                                 OutboxEntity outboxEntity = OutboxEntity.builder()
-                                                        .aggregateId(saved.getId().toString())
+                                                        .aggregateId(UUID.fromString(saved.getId().toString()))
                                                         .eventType("LANDSCAPE_CREATED")
                                                         .payload(payload)
                                                         .status("PENDING")

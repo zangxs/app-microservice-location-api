@@ -6,14 +6,15 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
 @Table(name = "outbox")
 public class OutboxEntity {
-    private String id;
+    private UUID id;
     @Column("aggregate_id")
-    private String aggregateId;
+    private UUID aggregateId;
     @Column("event_type")
     private String eventType;
     private String payload;
