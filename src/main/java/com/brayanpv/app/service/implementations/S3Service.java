@@ -27,27 +27,21 @@ public class S3Service implements IS3Service {
     private String minioUrl;
 
     @Override
-    public Mono<String> uploadFile(FilePart filePart) {
+    public Mono<String> uploadFile(FilePart filePart, byte[] bytes) {
         String fileName = UUID.randomUUID() + "-" + filePart.filename();
 
-        return DataBufferUtils.join(filePart.content())
-                .flatMap(dataBuffer -> Mono.fromCallable(() -> {
-                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                    dataBuffer.read(bytes);
-                    DataBufferUtils.release(dataBuffer);
-
-                    s3Client.putObject(
-                            PutObjectRequest.builder()
-                                    .bucket(bucket)
-                                    .key(fileName)
-                                    .contentType(filePart.headers().getContentType() != null
-                                            ? filePart.headers().getContentType().toString()
-                                            : "image/jpeg")
-                                    .build(),
-                            RequestBody.fromBytes(bytes)
-                    );
-
-                    return minioUrl + "/" + bucket + "/" + fileName;
-                }).subscribeOn(Schedulers.boundedElastic()));
+        return Mono.fromCallable(() -> {
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(fileName)
+                            .contentType(filePart.headers().getContentType() != null
+                                    ? filePart.headers().getContentType().toString()
+                                    : "image/jpeg")
+                            .build(),
+                    RequestBody.fromBytes(bytes)
+            );
+            return minioUrl + "/" + bucket + "/" + fileName;
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }
