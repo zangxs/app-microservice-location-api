@@ -24,6 +24,12 @@ public class RabbitMQConfig {
     @Value("${app.rabbitmq.routing-key}")
     private String routingKey;
 
+    @Value("${app.rabbitmq.status-queue}")
+    private String statusQueue;
+
+    @Value("${app.rabbitmq.status-routing-key}")
+    private String statusRoutingKey;
+
     @Bean
     public DirectExchange landscapeExchange() {
         return new DirectExchange(exchange);
@@ -52,6 +58,19 @@ public class RabbitMQConfig {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
         template.setMessageConverter(messageConverter());
         return template;
+    }
+
+    @Bean
+    public Queue landscapeStatusQueue() {
+        return new Queue(statusQueue, true);
+    }
+
+    @Bean
+    public Binding statusBinding(Queue landscapeStatusQueue, DirectExchange landscapeExchange) {
+        return BindingBuilder
+                .bind(landscapeStatusQueue)
+                .to(landscapeExchange)
+                .with(statusRoutingKey);
     }
 
 }
