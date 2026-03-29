@@ -2,20 +2,20 @@ package com.brayanpv.app.service.implementations;
 
 import com.brayanpv.app.model.request.LandscapeRequest;
 import com.brayanpv.app.model.response.LandscapeResponse;
+import com.brayanpv.app.model.response.NearbyLandscapeResponse;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
 import com.brayanpv.app.repositories.contracts.IOutboxRepository;
 import com.brayanpv.app.repositories.entities.LandscapeEntity;
 import com.brayanpv.app.repositories.entities.OutboxEntity;
-import com.brayanpv.app.service.contracts.IAppService;
-import com.brayanpv.app.service.contracts.IExifService;
-import com.brayanpv.app.service.contracts.IRabbitMQService;
-import com.brayanpv.app.service.contracts.IS3Service;
+import com.brayanpv.app.service.contracts.*;
 import com.brayanspv.library.model.events.LandscapeEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -29,10 +29,13 @@ public class AppService implements IAppService {
 
     private final IS3Service s3Service;
     private final ILandscapeRepository landscapeRepository;
-    private final IRabbitMQService rabbitMQService;
     private final IExifService exifService;
     private final IOutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
+    private final IIpService ipService;
+
+    @Value("${app.landscapes.max-radius}")
+    private int maxRadius;
 
     @Override
     public Mono<LandscapeResponse> uploadFile(LandscapeRequest request) {
@@ -93,6 +96,30 @@ public class AppService implements IAppService {
                                             });
                                 });
                     });
+        });
+    }
+
+    @Override
+    public Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip) {
+        Mono<double[]> coordinatesMono = (lat != null && lng != null)
+                ? Mono.just(new double[]{lat, lng})
+                : ipService.getCoordinates(ip);
+
+        return coordinatesMono.flatMapMany(coords -> {
+            double resolvedLat = coords[0];
+            double resolvedLng = coords[1];
+            int resolvedRadius = Math.min(radius, maxRadius);
+
+            return landscapeRepository.findNearby(resolvedLat, resolvedLng, resolvedRadius)
+                    .map(projection -> new NearbyLandscapeResponse(
+                            projection.getId().toString(),
+                            projection.getTitle(),
+                            projection.getDescription(),
+                            projection.getLatitude(),
+                            projection.getLongitude(),
+                            projection.getImageUrl(),
+                            projection.getDistance()
+                    ));
         });
     }
 }

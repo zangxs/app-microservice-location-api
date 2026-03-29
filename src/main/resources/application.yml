@@ -41,6 +41,9 @@ minio:
   bucket: ${MINIO_BUCKET:landscapes}
 
 app:
+  landscapes:
+    max-radius: ${MAX_RADIUS:200}
+    max-results: ${MAX_RESULTS:20}
   outbox:
     scheduler-delay: ${OUTBOX_SCHEDULER_DELAY:10000}
   rabbitmq:

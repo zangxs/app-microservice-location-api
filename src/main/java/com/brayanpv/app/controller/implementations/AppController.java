@@ -9,9 +9,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -52,5 +51,24 @@ public class AppController implements IAppController {
                         .data(locationResponse).build())
                 )
                 .onErrorResume(Mono::error);
+    }
+
+    @Override
+    @GetMapping("/landscapes/nearby")
+    public Mono<ResponseEntity<ApiResponse>> getNearby(@RequestParam(required = false) Double lat,
+                                                       @RequestParam(required = false) Double lng,
+                                                       @RequestParam(required = false, defaultValue = "50") Integer radius,
+                                                       ServerHttpRequest httpRequest) {
+        String ip = httpRequest.getRemoteAddress() != null
+                ? httpRequest.getRemoteAddress().getAddress().getHostAddress()
+                : "190.85.100.1";
+
+        return appService.getNearby(lat, lng, radius, ip)
+                .collectList()
+                .map(landscapes -> ResponseEntity.ok(ApiResponse.builder()
+                        .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                        .code(200)
+                        .data(landscapes)
+                        .build()));
     }
 }

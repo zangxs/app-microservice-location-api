@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -24,8 +25,20 @@ public class JWTAuthFilter implements WebFilter {
     private final IJWTService jwtService;
     private final ObjectMapper objectMapper;
 
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/app-microservice-location/landscapes/nearby"
+    );
+
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+
+        String path = exchange.getRequest().getPath().value();
+
+        if (PUBLIC_PATHS.contains(path)) {
+            return chain.filter(exchange);
+        }
+
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return unauthorized(exchange, "Token no proporcionado");
