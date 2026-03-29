@@ -5,4 +5,5 @@ public interface IJWTService {
     boolean validateToken(String token);
     String extractUserId(String token);
     String extractEmail(String token);
+    String extractField(String token, String field);
 }

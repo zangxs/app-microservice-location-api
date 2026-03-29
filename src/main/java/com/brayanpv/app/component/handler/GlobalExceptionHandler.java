@@ -21,6 +21,20 @@ import java.util.regex.Pattern;
 @Log4j2
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(value = RuntimeException.class)
+    public ResponseEntity<ApiResponse> handleException(RuntimeException ex) {
+        log.error(ex.getMessage(), ex);
+
+        ApiResponse apiResponse = ApiResponse.builder()
+                .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                .code(HttpStatus.BAD_REQUEST.value())
+                .data(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+
+    }
+
+
     @ExceptionHandler(value = ServerWebInputException.class)
     public ResponseEntity<?> handleServerWebInputException(ServerWebInputException e) {
         log.error("error in handler handleServerWebInputException: {}", e.getMessage());

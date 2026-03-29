@@ -43,6 +43,11 @@ public class JWTService implements IJWTService {
         return extractClaim(token, "email");
     }
 
+    @Override
+    public String extractField(String token, String field) {
+        return extractClaim(token, field);
+    }
+
 
     private SecretKey getSecretKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);

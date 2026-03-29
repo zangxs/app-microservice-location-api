@@ -48,11 +48,13 @@ public class JWTAuthFilter implements WebFilter {
 
         String userId = jwtService.extractUserId(token);
         String email = jwtService.extractEmail(token);
+        String username = jwtService.extractField(token, "username");
 
         return chain.filter(exchange)
                 .contextWrite(ctx -> ctx
                         .put("userId", userId)
                         .put("email", email)
+                        .put("username", username)
                 );
     }
 
