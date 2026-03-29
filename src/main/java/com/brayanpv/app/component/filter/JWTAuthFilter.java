@@ -25,17 +25,13 @@ public class JWTAuthFilter implements WebFilter {
     private final IJWTService jwtService;
     private final ObjectMapper objectMapper;
 
-    private static final List<String> PUBLIC_PATHS = List.of(
-            "/app-microservice-location/landscapes/nearby"
-    );
-
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
         String path = exchange.getRequest().getPath().value();
 
-        if (PUBLIC_PATHS.contains(path)) {
+        if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
 
@@ -81,5 +77,11 @@ public class JWTAuthFilter implements WebFilter {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
+    }
+
+    // Para paths con wildcards usa startsWith o un patrón
+    private boolean isPublicPath(String path) {
+        return path.equals("/app-microservice-location/landscapes/nearby")
+                || path.matches("/app-microservice-location/landscapes/.+/likes");
     }
 }

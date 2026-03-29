@@ -4,6 +4,7 @@ import com.brayanpv.app.controller.contracts.IAppController;
 import com.brayanpv.app.model.request.LandscapeRequest;
 import com.brayanpv.app.model.response.generic.ApiResponse;
 import com.brayanpv.app.service.contracts.IAppService;
+import com.brayanpv.app.service.contracts.ILandscapeLikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -22,6 +24,7 @@ import java.time.ZoneOffset;
 public class AppController implements IAppController {
 
     private final IAppService appService;
+    private final ILandscapeLikeService likeService;
 
     @Override
     @PostMapping(path = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -69,6 +72,46 @@ public class AppController implements IAppController {
                         .dateTime(LocalDateTime.now(ZoneOffset.UTC))
                         .code(200)
                         .data(landscapes)
+                        .build()));
+    }
+
+    @Override
+    @PostMapping("/landscapes/{id}/like")
+    public Mono<ResponseEntity<ApiResponse>> like(@PathVariable String id, ServerWebExchange exchange) {
+        return exchange.getPrincipal()
+                .flatMap(p -> Mono.deferContextual(ctx -> {
+                    String userId = ctx.get("userId");
+                    return likeService.like(id, userId)
+                            .thenReturn(ResponseEntity.ok(ApiResponse.builder()
+                                    .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                                    .code(200)
+                                    .data("Like agregado")
+                                    .build()));
+                }));
+    }
+
+    @Override
+    @DeleteMapping("/landscapes/{id}/like")
+    public Mono<ResponseEntity<ApiResponse>> unlike(@PathVariable String id, ServerWebExchange exchange) {
+        return Mono.deferContextual(ctx -> {
+            String userId = ctx.get("userId");
+            return likeService.unlike(id, userId)
+                    .thenReturn(ResponseEntity.ok(ApiResponse.builder()
+                            .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                            .code(200)
+                            .data("Like eliminado")
+                            .build()));
+        });
+    }
+
+    @Override
+    @GetMapping("/landscapes/{id}/likes")
+    public Mono<ResponseEntity<ApiResponse>> countLikes(@PathVariable String id) {
+        return likeService.countLikes(id)
+                .map(count -> ResponseEntity.ok(ApiResponse.builder()
+                        .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                        .code(200)
+                        .data(count)
                         .build()));
     }
 }

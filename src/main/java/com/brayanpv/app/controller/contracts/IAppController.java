@@ -5,8 +5,10 @@ import com.brayanpv.app.model.response.generic.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 public interface IAppController {
@@ -23,4 +25,14 @@ public interface IAppController {
             @RequestParam(required = false) Double lng,
             @RequestParam(required = false, defaultValue = "50") Integer radius,
             ServerHttpRequest httpRequest);
+
+    Mono<ResponseEntity<ApiResponse>> like(
+            @PathVariable String id,
+            ServerWebExchange exchange);
+
+    Mono<ResponseEntity<ApiResponse>> unlike(
+            @PathVariable String id,
+            ServerWebExchange exchange);
+
+    Mono<ResponseEntity<ApiResponse>> countLikes(@PathVariable String id);
 }
