@@ -165,3 +165,36 @@ CREATE TABLE IF NOT EXISTS landscape (
 - Las coordenadas van en formato decimal: Norte/Este positivos, Sur/Oeste negativos
 - Las imágenes enviadas por WhatsApp o Telegram pierden la metadata EXIF — enviar directamente desde el sistema de archivos
 - En producción reemplazar MinIO por AWS S3 cambiando las variables de entorno
+
+```
+¿Tiene ubicación activa?
+        ├── Sí → manda lat/lng en el request
+        │         ↓
+        │    Consulta paisajes APPROVED
+        │    ordenados por distancia
+        │    dentro de un radio (ej: 50km)
+        │
+        └── No → el backend detecta país/ciudad por IP (ip-api.com con la IP)
+                  ↓
+             Obtiene coordenadas aproximadas de la ciudad
+                  ↓
+             Consulta paisajes APPROVED
+             en esa zona
+             
+```
+
+```
+-- Sin PostGIS, usando Haversine
+SELECT *,
+(6371 * acos(cos(radians(:lat)) * cos(radians(latitude)) *
+cos(radians(longitude) - radians(:lng)) +
+sin(radians(:lat)) * sin(radians(latitude)))) AS distance
+FROM landscape
+WHERE status = 'APPROVED'
+HAVING distance < :radiusKm
+ORDER BY distance
+LIMIT 20
+```
+
+**2. Geolocalización por IP** — una API gratuita como `ip-api.com` que dado un IP devuelve ciudad y coordenadas aproximadas.
+
