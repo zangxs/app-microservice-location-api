@@ -12,4 +12,5 @@ public interface ILandscapeLikeRepository extends ReactiveCrudRepository<Landsca
     Mono<LandscapeLikeEntity> findByLandscapeIdAndUserId(UUID landscapeId, Long userId);
     Mono<Long> countByLandscapeId(UUID landscapeId);
     Mono<Void> deleteByLandscapeIdAndUserId(UUID landscapeId, Long userId);
+    Mono<Boolean> existsByLandscapeIdAndUserId(UUID landscapeId, Long userId);
 }

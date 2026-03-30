@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.UUID;
 
 @RestController
 @Log4j2
@@ -131,5 +132,18 @@ public class AppController implements IAppController {
                         .header("Access-Control-Allow-Origin", "*")
                         .header("Cache-Control", "public, max-age=86400")
                         .body(bytes));
+    }
+
+    @Override
+    @GetMapping("/landscapes/{id}")
+    public Mono<ResponseEntity<ApiResponse>> getLandscape(@PathVariable String id) {
+        log.info("request received getLandscape: id={}", id);
+        return appService.getLandscape(id)
+                .map(landscape -> ResponseEntity.ok(ApiResponse.builder()
+                        .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                        .code(200)
+                        .data(landscape)
+                        .build()))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }

@@ -18,4 +18,6 @@ public interface IOutboxRepository extends ReactiveCrudRepository<OutboxEntity, 
     @Query("UPDATE outbox SET status = :status, retries = :retries, processed_at = :processedAt WHERE id = :id")
     Mono<Void> updateOutbox(UUID id, String status, int retries, LocalDateTime processedAt);
 
+    Flux<OutboxEntity> findByAggregateIdAndStatus(UUID aggregateId, String status);
+
 }

@@ -1,6 +1,7 @@
 package com.brayanpv.app.service.implementations;
 
 import com.brayanpv.app.model.request.LandscapeRequest;
+import com.brayanpv.app.model.response.LandscapeDetailResponse;
 import com.brayanpv.app.model.response.LandscapeResponse;
 import com.brayanpv.app.model.response.NearbyLandscapeResponse;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
@@ -125,6 +126,20 @@ public class AppService implements IAppService {
                             projection.getDistance()
                     ));
         });
+    }
+
+    @Override
+    public Mono<LandscapeDetailResponse> getLandscape(String id) {
+        return landscapeRepository.findById(UUID.fromString(id))
+                .map(landscape -> new LandscapeDetailResponse(
+                        landscape.getId().toString(),
+                        landscape.getTitle(),
+                        landscape.getDescription(),
+                        landscape.getLatitude(),
+                        landscape.getLongitude(),
+                        buildProxyUrl(landscape.getImageUrl()),
+                        landscape.getStatus()
+                ));
     }
 
 

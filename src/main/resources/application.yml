@@ -47,6 +47,7 @@ app:
     max-results: ${MAX_RESULTS:20}
   outbox:
     scheduler-delay: ${OUTBOX_SCHEDULER_DELAY:10000}
+    reconciliation-delay: ${RECONCILIATION_DELAY:3600000}
   rabbitmq:
     exchange: landscape.exchange
     queue: landscape.pending.queue

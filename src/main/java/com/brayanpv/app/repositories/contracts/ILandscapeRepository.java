@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 @Repository
 public interface ILandscapeRepository extends ReactiveCrudRepository<LandscapeEntity, String> {
 
@@ -31,5 +34,10 @@ public interface ILandscapeRepository extends ReactiveCrudRepository<LandscapeEn
     LIMIT 20
     """)
     Flux<LandscapeProjection> findNearby(Double lat, Double lng, Integer radius);
+
+    @Query("SELECT * FROM landscape WHERE id = :id::uuid")
+    Mono<LandscapeEntity> findById(UUID id);
+
+    Flux<LandscapeEntity> findByStatusAndCreatedAtBefore(String status, LocalDateTime dateTime);
 
 }
