@@ -1,5 +1,6 @@
-package com.brayanpv.app.component.outbox.contracts;
+package com.brayanpv.app.scheduler.contracts;
 
 public interface IReconciliationScheduler {
+
     void reconcile();
 }

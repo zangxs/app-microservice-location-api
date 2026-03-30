@@ -92,7 +92,8 @@ public class JWTAuthFilter implements WebFilter {
     private boolean isPublicPath(String path) {
         return path.equals("/app-microservice-location/landscapes/nearby")
                 || path.matches("/app-microservice-location/landscapes/.+/likes")
-                || path.startsWith("/app-microservice-location/images/");
+                || path.startsWith("/app-microservice-location/images/")
+                || path.matches("/app-microservice-location/landscapes/[^/]+");
 
     }
 }

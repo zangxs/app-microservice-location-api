@@ -40,6 +40,4 @@ public interface ILandscapeRepository extends ReactiveCrudRepository<LandscapeEn
 
     Flux<LandscapeEntity> findByStatusAndCreatedAtBefore(String status, LocalDateTime dateTime);
 
-    Flux<LandscapeEntity> findByUserId(Long userId);
-
 }

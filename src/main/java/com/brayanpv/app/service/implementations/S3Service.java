@@ -52,7 +52,7 @@ public class S3Service implements IS3Service {
                             .build(),
                     RequestBody.fromBytes(bytes)
             );
-            return minioUrl + "/app-microservice-location/images/" + bucket + "/" + fileName;
+            return minioUrl + "/" + bucket + "/" + fileName;
         }).subscribeOn(Schedulers.boundedElastic());
     }
 

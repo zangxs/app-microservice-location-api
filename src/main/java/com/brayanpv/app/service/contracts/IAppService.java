@@ -10,8 +10,7 @@ import reactor.core.publisher.Mono;
 public interface IAppService {
 
     Mono<LandscapeResponse> uploadFile(LandscapeRequest request);
-    Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip, String baseUrl);
-    Mono<LandscapeDetailResponse> getLandscape(String id, String baseUrl);
-    Mono<Boolean> hasLiked(String landscapeId, String userId);
-    Flux<LandscapeDetailResponse> getMyLandscapes(String userId, String baseUrl);
+    Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip);
+    Mono<LandscapeDetailResponse> getLandscape(String id);
+
 }
