@@ -12,5 +12,6 @@ public interface IAppService {
     Mono<LandscapeResponse> uploadFile(LandscapeRequest request);
     Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip);
     Mono<LandscapeDetailResponse> getLandscape(String id);
+    Mono<Boolean> hasLiked(String landscapeId, String userId);
 
 }

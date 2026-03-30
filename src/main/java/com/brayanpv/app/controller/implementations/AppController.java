@@ -146,4 +146,18 @@ public class AppController implements IAppController {
                         .build()))
                 .defaultIfEmpty(ResponseEntity.notFound().build());
     }
+
+    @Override
+    @GetMapping("/landscapes/{id}/liked")
+    public Mono<ResponseEntity<ApiResponse>> hasLiked(@PathVariable String id) {
+        return Mono.deferContextual(ctx -> {
+            String userId = ctx.get("userId");
+            return appService.hasLiked(id, userId)
+                    .map(liked -> ResponseEntity.ok(ApiResponse.builder()
+                            .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                            .code(200)
+                            .data(liked)
+                            .build()));
+        });
+    }
 }
