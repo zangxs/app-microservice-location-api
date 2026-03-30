@@ -5,6 +5,7 @@ import com.brayanpv.app.service.contracts.IJWTService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class JWTAuthFilter implements WebFilter {
 
     private final IJWTService jwtService;
@@ -89,6 +91,8 @@ public class JWTAuthFilter implements WebFilter {
     // Para paths con wildcards usa startsWith o un patrón
     private boolean isPublicPath(String path) {
         return path.equals("/app-microservice-location/landscapes/nearby")
-                || path.matches("/app-microservice-location/landscapes/.+/likes");
+                || path.matches("/app-microservice-location/landscapes/.+/likes")
+                || path.startsWith("/app-microservice-location/images/");
+
     }
 }

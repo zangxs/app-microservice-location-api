@@ -37,6 +37,9 @@ public class AppService implements IAppService {
     @Value("${app.landscapes.max-radius}")
     private int maxRadius;
 
+    @Value("${app.producer-url:http://localhost:8001}")
+    private String producerUrl;
+
     @Override
     public Mono<LandscapeResponse> uploadFile(LandscapeRequest request) {
         log.info("request received: {}", request.toString());
@@ -117,9 +120,17 @@ public class AppService implements IAppService {
                             projection.getDescription(),
                             projection.getLatitude(),
                             projection.getLongitude(),
-                            projection.getImageUrl(),
+                            //projection.getImageUrl(),
+                            buildProxyUrl(projection.getImageUrl()), // convierte a URL del proxy
                             projection.getDistance()
                     ));
         });
+    }
+
+
+    private String buildProxyUrl(String minioUrl) {
+        // extrae solo el nombre del archivo
+        String filename = minioUrl.substring(minioUrl.lastIndexOf("/") + 1);
+        return producerUrl + "/app-microservice-location/images/" + filename;
     }
 }

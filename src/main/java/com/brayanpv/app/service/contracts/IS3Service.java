@@ -5,5 +5,5 @@ import reactor.core.publisher.Mono;
 
 public interface IS3Service {
     Mono<String> uploadFile(FilePart filePart, byte[] bytes);
-
+    Mono<byte[]> getFile(String filename);
 }
