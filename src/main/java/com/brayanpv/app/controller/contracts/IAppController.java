@@ -39,4 +39,6 @@ public interface IAppController {
     Mono<ResponseEntity<byte[]>> serveImage(@PathVariable String filename);
 
     Mono<ResponseEntity<ApiResponse>> getLandscape(@PathVariable String id);
+
+    Mono<ResponseEntity<ApiResponse>> hasLiked(@PathVariable String id);
 }

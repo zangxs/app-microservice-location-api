@@ -4,6 +4,7 @@ import com.brayanpv.app.model.request.LandscapeRequest;
 import com.brayanpv.app.model.response.LandscapeDetailResponse;
 import com.brayanpv.app.model.response.LandscapeResponse;
 import com.brayanpv.app.model.response.NearbyLandscapeResponse;
+import com.brayanpv.app.repositories.contracts.ILandscapeLikeRepository;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
 import com.brayanpv.app.repositories.contracts.IOutboxRepository;
 import com.brayanpv.app.repositories.entities.LandscapeEntity;
@@ -34,6 +35,7 @@ public class AppService implements IAppService {
     private final IOutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
     private final IIpService ipService;
+    private final ILandscapeLikeRepository landscapeLikeRepository;
 
     @Value("${app.landscapes.max-radius}")
     private int maxRadius;
@@ -140,6 +142,12 @@ public class AppService implements IAppService {
                         buildProxyUrl(landscape.getImageUrl()),
                         landscape.getStatus()
                 ));
+    }
+
+    @Override
+    public Mono<Boolean> hasLiked(String landscapeId, String userId) {
+        return landscapeLikeRepository.existsByLandscapeIdAndUserId(
+                UUID.fromString(landscapeId), Long.parseLong(userId));
     }
 
 
