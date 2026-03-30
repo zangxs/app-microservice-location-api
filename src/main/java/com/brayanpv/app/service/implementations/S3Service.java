@@ -34,6 +34,9 @@ public class S3Service implements IS3Service {
     @Value("${minio.url}")
     private String minioUrl;
 
+    @Value("${app.producer-url}")
+    private String producerUrl;
+
     @Override
     public Mono<String> uploadFile(FilePart filePart, byte[] bytes) {
         String fileName = UUID.randomUUID() + "-" + filePart.filename();
@@ -49,7 +52,19 @@ public class S3Service implements IS3Service {
                             .build(),
                     RequestBody.fromBytes(bytes)
             );
-            return minioUrl + "/" + bucket + "/" + fileName;
+            return minioUrl + "/app-microservice-location/images/" + bucket + "/" + fileName;
+        }).subscribeOn(Schedulers.boundedElastic());
+    }
+
+    @Override
+    public Mono<byte[]> getFile(String filename) {
+        return Mono.fromCallable(() -> {
+            GetObjectRequest request = GetObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(filename)
+                    .build();
+            ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request);
+            return response.readAllBytes();
         }).subscribeOn(Schedulers.boundedElastic());
     }
 

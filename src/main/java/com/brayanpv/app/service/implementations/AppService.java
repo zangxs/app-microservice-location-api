@@ -1,13 +1,16 @@
 package com.brayanpv.app.service.implementations;
 
 import com.brayanpv.app.model.request.LandscapeRequest;
-import com.brayanpv.app.model.response.LandscapeDetailResponse;
 import com.brayanpv.app.model.response.LandscapeResponse;
 import com.brayanpv.app.model.response.NearbyLandscapeResponse;
-import com.brayanpv.app.repositories.contracts.ILandscapeLikeRepository;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
+import com.brayanpv.app.repositories.contracts.IOutboxRepository;
 import com.brayanpv.app.repositories.entities.LandscapeEntity;
+import com.brayanpv.app.repositories.entities.OutboxEntity;
 import com.brayanpv.app.service.contracts.*;
+import com.brayanspv.library.model.events.LandscapeEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -28,9 +30,9 @@ public class AppService implements IAppService {
     private final IS3Service s3Service;
     private final ILandscapeRepository landscapeRepository;
     private final IExifService exifService;
-    private final IOutboxService outboxService;
+    private final IOutboxRepository outboxRepository;
+    private final ObjectMapper objectMapper;
     private final IIpService ipService;
-    private final ILandscapeLikeRepository landscapeLikeRepository;
 
     @Value("${app.landscapes.max-radius}")
     private int maxRadius;
@@ -43,39 +45,65 @@ public class AppService implements IAppService {
         log.info("request received: {}", request.toString());
         return Mono.deferContextual(ctx -> {
             String userId = ctx.get("userId");
-            String email = ctx.get("email");
-
             return exifService.extractCoordinates(request.file())
                     .flatMap(exifResult -> {
                         Double latitude = exifResult.latitude() != null ? exifResult.latitude() : request.latitude();
                         Double longitude = exifResult.longitude() != null ? exifResult.longitude() : request.longitude();
+
                         return s3Service.uploadFile(request.file(), exifResult.bytes())
-                                .flatMap(imageUrl -> saveLandscapeAndCreateOutbox(request, userId, email, latitude, longitude, imageUrl));
+                                .flatMap(imageUrl -> {
+                                    LandscapeEntity entity = LandscapeEntity.builder()
+                                            .userId(Long.parseLong(userId))
+                                            .title(request.title())
+                                            .description(request.description())
+                                            .latitude(latitude)
+                                            .longitude(longitude)
+                                            .imageUrl(imageUrl)
+                                            .status("PENDING")
+                                            .createdAt(LocalDateTime.now(ZoneOffset.UTC))
+                                            .updatedAt(LocalDateTime.now(ZoneOffset.UTC))
+                                            .build();
+
+                                    return landscapeRepository.save(entity)
+                                            .flatMap(saved -> {
+                                                LandscapeEvent event = new LandscapeEvent(
+                                                        saved.getId().toString(),
+                                                        userId,
+                                                        ctx.get("email"),
+                                                        saved.getTitle(),
+                                                        saved.getDescription(),
+                                                        saved.getLatitude(),
+                                                        saved.getLongitude(),
+                                                        saved.getImageUrl()
+                                                );
+
+                                                String payload;
+                                                try {
+                                                    payload = objectMapper.writeValueAsString(event);
+                                                } catch (JsonProcessingException e) {
+                                                    return Mono.error(new RuntimeException("Error serializing event"));
+                                                }
+
+                                                OutboxEntity outboxEntity = OutboxEntity.builder()
+                                                        .aggregateId(UUID.fromString(saved.getId().toString()))
+                                                        .eventType("LANDSCAPE_CREATED")
+                                                        .payload(payload)
+                                                        .status("PENDING")
+                                                        .retries(0)
+                                                        .maxRetries(3)
+                                                        .createdAt(LocalDateTime.now(ZoneOffset.UTC))
+                                                        .build();
+
+                                                return outboxRepository.save(outboxEntity)
+                                                        .thenReturn(new LandscapeResponse(saved.getId().toString(), "PENDING"));
+                                            });
+                                });
                     });
         });
     }
 
-    private Mono<LandscapeResponse> saveLandscapeAndCreateOutbox(
-            LandscapeRequest request, String userId, String email, Double latitude, Double longitude, String imageUrl) {
-        LandscapeEntity entity = LandscapeEntity.builder()
-                .userId(Long.parseLong(userId))
-                .title(request.title())
-                .description(request.description())
-                .latitude(latitude)
-                .longitude(longitude)
-                .imageUrl(imageUrl)
-                .status("PENDING")
-                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
-                .updatedAt(LocalDateTime.now(ZoneOffset.UTC))
-                .build();
-
-        return landscapeRepository.save(entity)
-                .flatMap(saved -> outboxService.publishLandscapeCreated(saved)
-                        .thenReturn(new LandscapeResponse(saved.getId().toString(), "PENDING")));
-    }
-
     @Override
-    public Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip, String baseUrl) {
+    public Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip) {
         Mono<double[]> coordinatesMono = (lat != null && lng != null)
                 ? Mono.just(new double[]{lat, lng})
                 : ipService.getCoordinates(ip);
@@ -93,53 +121,16 @@ public class AppService implements IAppService {
                             projection.getLatitude(),
                             projection.getLongitude(),
                             //projection.getImageUrl(),
-                            buildProxyUrl(projection.getImageUrl(), baseUrl), // convierte a URL del proxy
+                            buildProxyUrl(projection.getImageUrl()), // convierte a URL del proxy
                             projection.getDistance()
                     ));
         });
     }
 
-    @Override
-    public Mono<LandscapeDetailResponse> getLandscape(String id, String baseUrl) {
-        return landscapeRepository.findById(UUID.fromString(id))
-                .map(landscape -> new LandscapeDetailResponse(
-                        landscape.getId().toString(),
-                        landscape.getTitle(),
-                        landscape.getDescription(),
-                        landscape.getLatitude(),
-                        landscape.getLongitude(),
-                        buildProxyUrl(landscape.getImageUrl(), baseUrl), // convierte a URL del proxy
-                        landscape.getStatus()
-                ));
-    }
 
-    @Override
-    public Mono<Boolean> hasLiked(String landscapeId, String userId) {
-        return landscapeLikeRepository.existsByLandscapeIdAndUserId(
-                UUID.fromString(landscapeId), Long.parseLong(userId));
-    }
-
-    @Override
-    public Flux<LandscapeDetailResponse> getMyLandscapes(String userId, String baseUrl) {
-        return landscapeRepository.findByUserId(Long.parseLong(userId))
-                .map(landscape -> new LandscapeDetailResponse(
-                        landscape.getId().toString(),
-                        landscape.getTitle(),
-                        landscape.getDescription(),
-                        landscape.getLatitude(),
-                        landscape.getLongitude(),
-                        buildProxyUrl(landscape.getImageUrl(), baseUrl), // convierte a URL del proxy
-                        landscape.getStatus()
-                ));
-    }
-
-
-    private String buildProxyUrl(String minioUrl, String baseUrl) {
+    private String buildProxyUrl(String minioUrl) {
+        // extrae solo el nombre del archivo
         String filename = minioUrl.substring(minioUrl.lastIndexOf("/") + 1);
-        if (Objects.isNull(baseUrl) || baseUrl.isEmpty()) {
-            // extrae solo el nombre del archivo
-            return producerUrl + "/app-microservice-location/images/" + filename;
-        }
-        return baseUrl + "/app-microservice-location/images/" + filename;
+        return producerUrl + "/app-microservice-location/images/" + filename;
     }
 }

@@ -35,4 +35,7 @@ public interface IAppController {
             ServerWebExchange exchange);
 
     Mono<ResponseEntity<ApiResponse>> countLikes(@PathVariable String id);
+
+    Mono<ResponseEntity<byte[]>> serveImage(
+            @PathVariable String filename);
 }

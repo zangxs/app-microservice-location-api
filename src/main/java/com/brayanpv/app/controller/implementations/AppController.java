@@ -5,6 +5,7 @@ import com.brayanpv.app.model.request.LandscapeRequest;
 import com.brayanpv.app.model.response.generic.ApiResponse;
 import com.brayanpv.app.service.contracts.IAppService;
 import com.brayanpv.app.service.contracts.ILandscapeLikeService;
+import com.brayanpv.app.service.contracts.IS3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ public class AppController implements IAppController {
 
     private final IAppService appService;
     private final ILandscapeLikeService likeService;
+    private final IS3Service s3Service;
 
     @Override
     @PostMapping(path = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -117,5 +119,17 @@ public class AppController implements IAppController {
                         .code(200)
                         .data(count)
                         .build()));
+    }
+
+    @Override
+    @GetMapping("/images/{filename}")
+    public Mono<ResponseEntity<byte[]>> serveImage(
+            @PathVariable String filename) {
+        return s3Service.getFile(filename)
+                .map(bytes -> ResponseEntity.ok()
+                        .header("Content-Type", "image/jpeg")
+                        .header("Access-Control-Allow-Origin", "*")
+                        .header("Cache-Control", "public, max-age=86400")
+                        .body(bytes));
     }
 }
