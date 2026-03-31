@@ -93,7 +93,7 @@ public class JWTAuthFilter implements WebFilter {
         return path.equals("/app-microservice-location/landscapes/nearby")
                 || path.matches("/app-microservice-location/landscapes/.+/likes")
                 || path.startsWith("/app-microservice-location/images/")
-                || path.matches("/app-microservice-location/landscapes/[^/]+");
+                || path.matches("/app-microservice-location/landscapes/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
 
     }
 }

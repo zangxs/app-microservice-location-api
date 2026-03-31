@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -106,7 +107,7 @@ public class AppService implements IAppService {
     }
 
     @Override
-    public Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip) {
+    public Flux<NearbyLandscapeResponse> getNearby(Double lat, Double lng, Integer radius, String ip, String baseUrl) {
         Mono<double[]> coordinatesMono = (lat != null && lng != null)
                 ? Mono.just(new double[]{lat, lng})
                 : ipService.getCoordinates(ip);
@@ -124,14 +125,14 @@ public class AppService implements IAppService {
                             projection.getLatitude(),
                             projection.getLongitude(),
                             //projection.getImageUrl(),
-                            buildProxyUrl(projection.getImageUrl()), // convierte a URL del proxy
+                            buildProxyUrl(projection.getImageUrl(), baseUrl), // convierte a URL del proxy
                             projection.getDistance()
                     ));
         });
     }
 
     @Override
-    public Mono<LandscapeDetailResponse> getLandscape(String id) {
+    public Mono<LandscapeDetailResponse> getLandscape(String id, String baseUrl) {
         return landscapeRepository.findById(UUID.fromString(id))
                 .map(landscape -> new LandscapeDetailResponse(
                         landscape.getId().toString(),
@@ -139,7 +140,7 @@ public class AppService implements IAppService {
                         landscape.getDescription(),
                         landscape.getLatitude(),
                         landscape.getLongitude(),
-                        buildProxyUrl(landscape.getImageUrl()),
+                        buildProxyUrl(landscape.getImageUrl(), baseUrl), // convierte a URL del proxy
                         landscape.getStatus()
                 ));
     }
@@ -150,10 +151,27 @@ public class AppService implements IAppService {
                 UUID.fromString(landscapeId), Long.parseLong(userId));
     }
 
+    @Override
+    public Flux<LandscapeDetailResponse> getMyLandscapes(String userId, String baseUrl) {
+        return landscapeRepository.findByUserId(Long.parseLong(userId))
+                .map(landscape -> new LandscapeDetailResponse(
+                        landscape.getId().toString(),
+                        landscape.getTitle(),
+                        landscape.getDescription(),
+                        landscape.getLatitude(),
+                        landscape.getLongitude(),
+                        buildProxyUrl(landscape.getImageUrl(), baseUrl), // convierte a URL del proxy
+                        landscape.getStatus()
+                ));
+    }
 
-    private String buildProxyUrl(String minioUrl) {
-        // extrae solo el nombre del archivo
+
+    private String buildProxyUrl(String minioUrl, String baseUrl) {
         String filename = minioUrl.substring(minioUrl.lastIndexOf("/") + 1);
-        return producerUrl + "/app-microservice-location/images/" + filename;
+        if (Objects.isNull(baseUrl) || baseUrl.isEmpty()) {
+            // extrae solo el nombre del archivo
+            return producerUrl + "/app-microservice-location/images/" + filename;
+        }
+        return baseUrl + "/app-microservice-location/images/" + filename;
     }
 }

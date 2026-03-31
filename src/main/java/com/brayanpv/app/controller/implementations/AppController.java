@@ -69,7 +69,10 @@ public class AppController implements IAppController {
                 ? httpRequest.getRemoteAddress().getAddress().getHostAddress()
                 : "190.85.100.1";
 
-        return appService.getNearby(lat, lng, radius, ip)
+        // Extrae el baseUrl del request: scheme + host + port
+        String baseUrl = httpRequest.getURI().getScheme() + "://" + httpRequest.getURI().getAuthority();
+
+        return appService.getNearby(lat, lng, radius, ip, baseUrl)
                 .collectList()
                 .map(landscapes -> ResponseEntity.ok(ApiResponse.builder()
                         .dateTime(LocalDateTime.now(ZoneOffset.UTC))
@@ -136,9 +139,11 @@ public class AppController implements IAppController {
 
     @Override
     @GetMapping("/landscapes/{id}")
-    public Mono<ResponseEntity<ApiResponse>> getLandscape(@PathVariable String id) {
+    public Mono<ResponseEntity<ApiResponse>> getLandscape(@PathVariable String id, ServerHttpRequest httpRequest) {
         log.info("request received getLandscape: id={}", id);
-        return appService.getLandscape(id)
+        String baseUrl = httpRequest.getURI().getScheme() + "://" + httpRequest.getURI().getAuthority();
+
+        return appService.getLandscape(id, baseUrl)
                 .map(landscape -> ResponseEntity.ok(ApiResponse.builder()
                         .dateTime(LocalDateTime.now(ZoneOffset.UTC))
                         .code(200)
@@ -157,6 +162,22 @@ public class AppController implements IAppController {
                             .dateTime(LocalDateTime.now(ZoneOffset.UTC))
                             .code(200)
                             .data(liked)
+                            .build()));
+        });
+    }
+
+    @Override
+    @GetMapping("/landscapes/my")
+    public Mono<ResponseEntity<ApiResponse>> getMyLandscapes(ServerHttpRequest httpRequest) {
+        return Mono.deferContextual(ctx -> {
+            String userId = ctx.get("userId");
+            String baseUrl = httpRequest.getURI().getScheme() + "://" + httpRequest.getURI().getAuthority();
+            return appService.getMyLandscapes(userId, baseUrl)
+                    .collectList()
+                    .map(landscapes -> ResponseEntity.ok(ApiResponse.builder()
+                            .dateTime(LocalDateTime.now(ZoneOffset.UTC))
+                            .code(200)
+                            .data(landscapes)
                             .build()));
         });
     }
