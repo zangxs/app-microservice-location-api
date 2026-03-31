@@ -29,9 +29,6 @@ public class S3Service implements IS3Service {
     @Value("${minio.url}")
     private String minioUrl;
 
-    @Value("${app.producer-url}")
-    private String producerUrl;
-
     @Override
     public Mono<String> uploadFile(FilePart filePart, byte[] bytes) {
         String fileName = UUID.randomUUID() + "-" + filePart.filename();
