@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
@@ -195,18 +194,20 @@ class AppControllerTest {
     void serveImageOk() {
         String filename = "image-123.jpg";
         byte[] imageBytes = new byte[]{1, 2, 3, 4};
-        DataBuffer buffer = new DefaultDataBufferFactory().wrap(imageBytes);
 
-        when(s3Service.getFileStream(filename)).thenReturn(Flux.just(buffer));
+        when(s3Service.getFile(filename)).thenReturn(Mono.just(imageBytes));
 
         webTestClient.get()
                 .uri("/images/{filename}", filename)
                 .exchange()
                 .expectStatus().isOk()
+                .expectHeader().contentType("image/jpeg")
+                .expectHeader().exists("Access-Control-Allow-Origin")
+                .expectHeader().exists("Cache-Control")
                 .expectBody(byte[].class)
                 .isEqualTo(imageBytes);
 
-        verify(s3Service, times(1)).getFileStream(filename);
+        verify(s3Service, times(1)).getFile(filename);
     }
 
     @Test

@@ -7,12 +7,14 @@ import com.brayanpv.app.model.response.LandscapeResponse;
 import com.brayanpv.app.model.response.NearbyLandscapeResponse;
 import com.brayanpv.app.repositories.contracts.ILandscapeLikeRepository;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
+import com.brayanpv.app.repositories.contracts.IOutboxRepository;
 import com.brayanpv.app.repositories.entities.LandscapeEntity;
+import com.brayanpv.app.repositories.entities.OutboxEntity;
 import com.brayanpv.app.repositories.entities.projection.LandscapeProjection;
 import com.brayanpv.app.service.contracts.IExifService;
 import com.brayanpv.app.service.contracts.IIpService;
-import com.brayanpv.app.service.contracts.IOutboxService;
 import com.brayanpv.app.service.contracts.IS3Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +47,7 @@ class AppServiceTest {
     private IExifService exifService;
 
     @Mock
-    private IOutboxService outboxService;
+    private IOutboxRepository outboxRepository;
 
     @Mock
     private IIpService ipService;
@@ -56,15 +58,19 @@ class AppServiceTest {
     @Mock
     private FilePart mockFilePart;
 
+    private ObjectMapper objectMapper;
+
     private AppService appService;
 
     @BeforeEach
     void setUp() {
+        objectMapper = new ObjectMapper();
         appService = new AppService(
                 s3Service,
                 landscapeRepository,
                 exifService,
-                outboxService,
+                outboxRepository,
+                objectMapper,
                 ipService,
                 landscapeLikeRepository
         );
@@ -100,7 +106,19 @@ class AppServiceTest {
                 .build();
 
         when(landscapeRepository.save(any(LandscapeEntity.class))).thenReturn(Mono.just(savedEntity));
-        when(outboxService.publishLandscapeCreated(any(LandscapeEntity.class))).thenReturn(Mono.empty());
+
+        OutboxEntity savedOutbox = OutboxEntity.builder()
+                .id(UUID.randomUUID())
+                .aggregateId(UUID.fromString(landscapeId))
+                .eventType("LANDSCAPE_CREATED")
+                .payload("{}")
+                .status("PENDING")
+                .retries(0)
+                .maxRetries(3)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(outboxRepository.save(any(OutboxEntity.class))).thenReturn(Mono.just(savedOutbox));
 
         Mono<LandscapeResponse> result = appService.uploadFile(request)
                 .contextWrite(ctx -> ctx.put("userId", userId).put("email", email));
@@ -115,7 +133,7 @@ class AppServiceTest {
         verify(exifService, times(1)).extractCoordinates(mockFilePart);
         verify(s3Service, times(1)).uploadFile(mockFilePart, imageBytes);
         verify(landscapeRepository, times(1)).save(any(LandscapeEntity.class));
-        verify(outboxService, times(1)).publishLandscapeCreated(any(LandscapeEntity.class));
+        verify(outboxRepository, times(1)).save(any(OutboxEntity.class));
     }
 
     @Test
@@ -146,7 +164,19 @@ class AppServiceTest {
                 .build();
 
         when(landscapeRepository.save(any(LandscapeEntity.class))).thenReturn(Mono.just(savedEntity));
-        when(outboxService.publishLandscapeCreated(any(LandscapeEntity.class))).thenReturn(Mono.empty());
+
+        OutboxEntity savedOutbox = OutboxEntity.builder()
+                .id(UUID.randomUUID())
+                .aggregateId(UUID.fromString(landscapeId))
+                .eventType("LANDSCAPE_CREATED")
+                .payload("{}")
+                .status("PENDING")
+                .retries(0)
+                .maxRetries(3)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        when(outboxRepository.save(any(OutboxEntity.class))).thenReturn(Mono.just(savedOutbox));
 
         Mono<LandscapeResponse> result = appService.uploadFile(request)
                 .contextWrite(ctx -> ctx.put("userId", userId).put("email", email));
