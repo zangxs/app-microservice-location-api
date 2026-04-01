@@ -3,9 +3,12 @@ package com.brayanpv.app.service.implementations;
 import com.brayanpv.app.service.contracts.IS3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -15,6 +18,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 
@@ -49,14 +54,19 @@ public class S3Service implements IS3Service {
     }
 
     @Override
-    public Mono<byte[]> getFile(String filename) {
+    public Flux<DataBuffer> getFileStream(String filename) {
         return Mono.fromCallable(() -> {
-            GetObjectRequest request = GetObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(filename)
-                    .build();
-            ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request);
-            return response.readAllBytes();
-        }).subscribeOn(Schedulers.boundedElastic());
+                    GetObjectRequest request = GetObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(filename)
+                            .build();
+                    return s3Client.getObject(request);
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(inputStream -> DataBufferUtils.readInputStream(
+                        () -> inputStream,
+                        new DefaultDataBufferFactory(),
+                        8192
+                ));
     }
 }

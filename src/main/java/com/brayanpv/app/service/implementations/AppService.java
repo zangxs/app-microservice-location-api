@@ -49,61 +49,67 @@ public class AppService implements IAppService {
         log.info("request received: {}", request.toString());
         return Mono.deferContextual(ctx -> {
             String userId = ctx.get("userId");
+            String email = ctx.get("email");
+
             return exifService.extractCoordinates(request.file())
                     .flatMap(exifResult -> {
                         Double latitude = exifResult.latitude() != null ? exifResult.latitude() : request.latitude();
                         Double longitude = exifResult.longitude() != null ? exifResult.longitude() : request.longitude();
-
                         return s3Service.uploadFile(request.file(), exifResult.bytes())
-                                .flatMap(imageUrl -> {
-                                    LandscapeEntity entity = LandscapeEntity.builder()
-                                            .userId(Long.parseLong(userId))
-                                            .title(request.title())
-                                            .description(request.description())
-                                            .latitude(latitude)
-                                            .longitude(longitude)
-                                            .imageUrl(imageUrl)
-                                            .status("PENDING")
-                                            .createdAt(LocalDateTime.now(ZoneOffset.UTC))
-                                            .updatedAt(LocalDateTime.now(ZoneOffset.UTC))
-                                            .build();
-
-                                    return landscapeRepository.save(entity)
-                                            .flatMap(saved -> {
-                                                LandscapeEvent event = new LandscapeEvent(
-                                                        saved.getId().toString(),
-                                                        userId,
-                                                        ctx.get("email"),
-                                                        saved.getTitle(),
-                                                        saved.getDescription(),
-                                                        saved.getLatitude(),
-                                                        saved.getLongitude(),
-                                                        saved.getImageUrl()
-                                                );
-
-                                                String payload;
-                                                try {
-                                                    payload = objectMapper.writeValueAsString(event);
-                                                } catch (JsonProcessingException e) {
-                                                    return Mono.error(new RuntimeException("Error serializing event"));
-                                                }
-
-                                                OutboxEntity outboxEntity = OutboxEntity.builder()
-                                                        .aggregateId(UUID.fromString(saved.getId().toString()))
-                                                        .eventType("LANDSCAPE_CREATED")
-                                                        .payload(payload)
-                                                        .status("PENDING")
-                                                        .retries(0)
-                                                        .maxRetries(3)
-                                                        .createdAt(LocalDateTime.now(ZoneOffset.UTC))
-                                                        .build();
-
-                                                return outboxRepository.save(outboxEntity)
-                                                        .thenReturn(new LandscapeResponse(saved.getId().toString(), "PENDING"));
-                                            });
-                                });
+                                .flatMap(imageUrl -> saveLandscapeAndCreateOutbox(request, userId, email, latitude, longitude, imageUrl));
                     });
         });
+    }
+
+    private Mono<LandscapeResponse> saveLandscapeAndCreateOutbox(
+            LandscapeRequest request, String userId, String email, Double latitude, Double longitude, String imageUrl) {
+        LandscapeEntity entity = LandscapeEntity.builder()
+                .userId(Long.parseLong(userId))
+                .title(request.title())
+                .description(request.description())
+                .latitude(latitude)
+                .longitude(longitude)
+                .imageUrl(imageUrl)
+                .status("PENDING")
+                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
+                .updatedAt(LocalDateTime.now(ZoneOffset.UTC))
+                .build();
+
+        return landscapeRepository.save(entity)
+                .flatMap(this::createOutboxEntry);
+    }
+
+    private Mono<LandscapeResponse> createOutboxEntry(LandscapeEntity saved) {
+        LandscapeEvent event = new LandscapeEvent(
+                saved.getId().toString(),
+                saved.getUserId().toString(),
+                null,
+                saved.getTitle(),
+                saved.getDescription(),
+                saved.getLatitude(),
+                saved.getLongitude(),
+                saved.getImageUrl()
+        );
+
+        String payload;
+        try {
+            payload = objectMapper.writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            return Mono.error(new RuntimeException("Error serializing event"));
+        }
+
+        OutboxEntity outboxEntity = OutboxEntity.builder()
+                .aggregateId(UUID.fromString(saved.getId().toString()))
+                .eventType("LANDSCAPE_CREATED")
+                .payload(payload)
+                .status("PENDING")
+                .retries(0)
+                .maxRetries(3)
+                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
+                .build();
+
+        return outboxRepository.save(outboxEntity)
+                .thenReturn(new LandscapeResponse(saved.getId().toString(), "PENDING"));
     }
 
     @Override

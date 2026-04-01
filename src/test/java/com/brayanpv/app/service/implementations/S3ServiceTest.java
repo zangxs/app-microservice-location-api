@@ -5,10 +5,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.test.util.ReflectionTestUtils;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -21,7 +24,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.ByteArrayInputStream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -111,23 +113,32 @@ class S3ServiceTest {
                 .verify();
     }
 
+    @SuppressWarnings("unchecked")
     @Test
-    void getFileSuccess() throws Exception {
+    void getFileStreamSuccess() throws Exception {
         byte[] fileContent = new byte[]{10, 20, 30, 40, 50};
         ByteArrayInputStream inputStream = new ByteArrayInputStream(fileContent);
 
         ResponseInputStream<GetObjectResponse> responseStream = mock(ResponseInputStream.class);
-        when(responseStream.readAllBytes()).thenReturn(fileContent);
+        doAnswer(invocation -> {
+            byte[] buffer = invocation.getArgument(0);
+            int offset = invocation.getArgument(1);
+            int length = invocation.getArgument(2);
+            return inputStream.read(buffer, offset, length);
+        }).when(responseStream).read(any(byte[].class), anyInt(), anyInt());
 
         when(s3Client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
 
-        Mono<byte[]> result = s3Service.getFile("test-file.jpg");
+        Flux<DataBuffer> result = s3Service.getFileStream("test-file.jpg");
 
         StepVerifier.create(result)
-                .assertNext(content -> {
-                    assert content.length == 5;
-                    assert content[0] == 10;
-                    assert content[4] == 50;
+                .consumeNextWith(buffer -> {
+                    byte[] bytes = new byte[buffer.readableByteCount()];
+                    buffer.read(bytes);
+                    DataBufferUtils.release(buffer);
+                    assert bytes.length == 5;
+                    assert bytes[0] == 10;
+                    assert bytes[4] == 50;
                 })
                 .verifyComplete();
 
@@ -135,11 +146,11 @@ class S3ServiceTest {
     }
 
     @Test
-    void getFileError() {
+    void getFileStreamError() {
         when(s3Client.getObject(any(GetObjectRequest.class)))
                 .thenThrow(new RuntimeException("File not found"));
 
-        Mono<byte[]> result = s3Service.getFile("non-existent.jpg");
+        Flux<DataBuffer> result = s3Service.getFileStream("non-existent.jpg");
 
         StepVerifier.create(result)
                 .expectError(RuntimeException.class)
