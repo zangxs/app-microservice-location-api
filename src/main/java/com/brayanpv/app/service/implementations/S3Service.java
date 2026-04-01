@@ -54,15 +54,20 @@ public class S3Service implements IS3Service {
     }
 
     @Override
-    public Mono<byte[]> getFile(String filename) {
+    public Flux<DataBuffer> getFileStream(String filename) {
         return Mono.fromCallable(() -> {
-            GetObjectRequest request = GetObjectRequest.builder()
-                    .bucket(bucket)
-                    .key(filename)
-                    .build();
-            ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request);
-            return response.readAllBytes();
-        }).subscribeOn(Schedulers.boundedElastic());
+                    GetObjectRequest request = GetObjectRequest.builder()
+                            .bucket(bucket)
+                            .key(filename)
+                            .build();
+                    return s3Client.getObject(request);
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(inputStream -> DataBufferUtils.readInputStream(
+                        () -> inputStream,
+                        new DefaultDataBufferFactory(),
+                        8192
+                ));
     }
 
     @Override

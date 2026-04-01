@@ -8,12 +8,14 @@ import com.brayanpv.app.service.contracts.ILandscapeLikeService;
 import com.brayanpv.app.service.contracts.IS3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -48,15 +50,12 @@ public class AppController implements IAppController {
                 Double.parseDouble(longitude)
         );
 
-        log.info("request received: request={}", request);
-
         return appService.uploadFile(request)
                 .map(locationResponse -> ResponseEntity.ok(ApiResponse.builder()
                         .dateTime(LocalDateTime.now(ZoneOffset.UTC))
                         .code(200)
                         .data(locationResponse).build())
-                )
-                .onErrorResume(Mono::error);
+                );
     }
 
     @Override
@@ -127,14 +126,9 @@ public class AppController implements IAppController {
 
     @Override
     @GetMapping("/images/{filename}")
-    public Mono<ResponseEntity<byte[]>> serveImage(
+    public Flux<DataBuffer> serveImage(
             @PathVariable String filename) {
-        return s3Service.getFile(filename)
-                .map(bytes -> ResponseEntity.ok()
-                        .header("Content-Type", "image/jpeg")
-                        .header("Access-Control-Allow-Origin", "*")
-                        .header("Cache-Control", "public, max-age=86400")
-                        .body(bytes));
+        return s3Service.getFileStream(filename);
     }
 
     @Override
