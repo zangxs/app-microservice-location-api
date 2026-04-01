@@ -1,14 +1,14 @@
-package com.brayanpv.app.service.implementations;
+package com.brayanpv.app.component.messaging.implementations;
 
+import com.brayanpv.app.component.messaging.contracts.ILandscapeStatusConsumer;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
-import com.brayanpv.app.service.contracts.ILandscapeStatusConsumer;
 import com.brayanspv.library.model.events.LandscapeStatusEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-@Service
+@Component
 @Log4j2
 @RequiredArgsConstructor
 public class LandscapeStatusConsumer implements ILandscapeStatusConsumer {

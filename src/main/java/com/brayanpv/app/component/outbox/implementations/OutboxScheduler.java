@@ -1,9 +1,9 @@
-package com.brayanpv.app.scheduler.implementations;
+package com.brayanpv.app.component.outbox.implementations;
 
+import com.brayanpv.app.component.messaging.contracts.IRabbitMQService;
+import com.brayanpv.app.component.outbox.contracts.IOutboxScheduler;
 import com.brayanpv.app.repositories.contracts.IOutboxRepository;
 import com.brayanpv.app.repositories.entities.OutboxEntity;
-import com.brayanpv.app.scheduler.contracts.IOutboxScheduler;
-import com.brayanpv.app.service.contracts.IRabbitMQService;
 import com.brayanspv.library.model.events.LandscapeEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -60,5 +60,4 @@ public class OutboxScheduler implements IOutboxScheduler {
                 null
         );
     }
-
 }

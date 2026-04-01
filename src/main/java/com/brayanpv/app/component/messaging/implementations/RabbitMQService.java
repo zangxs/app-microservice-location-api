@@ -1,16 +1,16 @@
-package com.brayanpv.app.service.implementations;
+package com.brayanpv.app.component.messaging.implementations;
 
-import com.brayanpv.app.service.contracts.IRabbitMQService;
+import com.brayanpv.app.component.messaging.contracts.IRabbitMQService;
 import com.brayanspv.library.model.events.LandscapeEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-@Service
+@Component
 @Log4j2
 @RequiredArgsConstructor
 public class RabbitMQService implements IRabbitMQService {

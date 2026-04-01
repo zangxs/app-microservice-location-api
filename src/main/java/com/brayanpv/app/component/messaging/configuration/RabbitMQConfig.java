@@ -1,4 +1,4 @@
-package com.brayanpv.app.component.configuration;
+package com.brayanpv.app.component.messaging.configuration;
 
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.core.Binding;
@@ -37,7 +37,7 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue landscapeQueue() {
-        return new Queue(queue, true); // true = durable, sobrevive reinicios
+        return new Queue(queue, true);
     }
 
     @Bean
@@ -50,7 +50,7 @@ public class RabbitMQConfig {
 
     @Bean
     public MessageConverter messageConverter() {
-        return new Jackson2JsonMessageConverter(); // serializa a JSON automáticamente
+        return new Jackson2JsonMessageConverter();
     }
 
     @Bean
@@ -72,5 +72,4 @@ public class RabbitMQConfig {
                 .to(landscapeExchange)
                 .with(statusRoutingKey);
     }
-
 }

@@ -1,9 +1,9 @@
-package com.brayanpv.app.scheduler.implementations;
+package com.brayanpv.app.component.outbox.implementations;
 
+import com.brayanpv.app.component.outbox.contracts.IReconciliationScheduler;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
 import com.brayanpv.app.repositories.contracts.IOutboxRepository;
 import com.brayanpv.app.repositories.entities.OutboxEntity;
-import com.brayanpv.app.scheduler.contracts.IReconciliationScheduler;
 import com.brayanspv.library.model.events.LandscapeEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +26,8 @@ public class ReconciliationScheduler implements IReconciliationScheduler {
     private final IOutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
 
-    @Scheduled(fixedDelayString = "${app.outbox.reconciliation-delay:3600000}")
     @Override
+    @Scheduled(fixedDelayString = "${app.outbox.reconciliation-delay:3600000}")
     public void reconcile() {
         log.info("Running reconciliation scheduler");
 
@@ -38,7 +38,6 @@ public class ReconciliationScheduler implements IReconciliationScheduler {
                 .flatMap(landscape -> {
                     log.info("Reconciling landscape: {}", landscape.getId());
 
-                    // Verificar que no tenga ya un outbox PENDING
                     return outboxRepository.findByAggregateIdAndStatus(
                                     UUID.fromString(landscape.getId()), "PENDING")
                             .hasElements()

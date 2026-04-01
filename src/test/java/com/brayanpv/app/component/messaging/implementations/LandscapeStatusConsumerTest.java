@@ -1,5 +1,6 @@
-package com.brayanpv.app.service.implementations;
+package com.brayanpv.app.component.messaging.implementations;
 
+import com.brayanpv.app.component.messaging.contracts.ILandscapeStatusConsumer;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
 import com.brayanspv.library.model.events.LandscapeStatusEvent;
 import org.junit.jupiter.api.BeforeEach;

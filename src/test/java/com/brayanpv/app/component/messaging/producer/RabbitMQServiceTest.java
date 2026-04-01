@@ -1,5 +1,6 @@
-package com.brayanpv.app.service.implementations;
+package com.brayanpv.app.component.messaging.producer;
 
+import com.brayanpv.app.component.messaging.implementations.RabbitMQService;
 import com.brayanspv.library.model.events.LandscapeEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.brayanpv.app.service.contracts;
+package com.brayanpv.app.component.messaging.contracts;
 
 import com.brayanspv.library.model.events.LandscapeEvent;
 import reactor.core.publisher.Mono;
