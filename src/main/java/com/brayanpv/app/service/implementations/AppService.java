@@ -6,13 +6,8 @@ import com.brayanpv.app.model.response.LandscapeResponse;
 import com.brayanpv.app.model.response.NearbyLandscapeResponse;
 import com.brayanpv.app.repositories.contracts.ILandscapeLikeRepository;
 import com.brayanpv.app.repositories.contracts.ILandscapeRepository;
-import com.brayanpv.app.repositories.contracts.IOutboxRepository;
 import com.brayanpv.app.repositories.entities.LandscapeEntity;
-import com.brayanpv.app.repositories.entities.OutboxEntity;
 import com.brayanpv.app.service.contracts.*;
-import com.brayanspv.library.model.events.LandscapeEvent;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +28,7 @@ public class AppService implements IAppService {
     private final IS3Service s3Service;
     private final ILandscapeRepository landscapeRepository;
     private final IExifService exifService;
-    private final IOutboxRepository outboxRepository;
-    private final ObjectMapper objectMapper;
+    private final IOutboxService outboxService;
     private final IIpService ipService;
     private final ILandscapeLikeRepository landscapeLikeRepository;
 
@@ -76,40 +70,8 @@ public class AppService implements IAppService {
                 .build();
 
         return landscapeRepository.save(entity)
-                .flatMap(this::createOutboxEntry);
-    }
-
-    private Mono<LandscapeResponse> createOutboxEntry(LandscapeEntity saved) {
-        LandscapeEvent event = new LandscapeEvent(
-                saved.getId().toString(),
-                saved.getUserId().toString(),
-                null,
-                saved.getTitle(),
-                saved.getDescription(),
-                saved.getLatitude(),
-                saved.getLongitude(),
-                saved.getImageUrl()
-        );
-
-        String payload;
-        try {
-            payload = objectMapper.writeValueAsString(event);
-        } catch (JsonProcessingException e) {
-            return Mono.error(new RuntimeException("Error serializing event"));
-        }
-
-        OutboxEntity outboxEntity = OutboxEntity.builder()
-                .aggregateId(UUID.fromString(saved.getId().toString()))
-                .eventType("LANDSCAPE_CREATED")
-                .payload(payload)
-                .status("PENDING")
-                .retries(0)
-                .maxRetries(3)
-                .createdAt(LocalDateTime.now(ZoneOffset.UTC))
-                .build();
-
-        return outboxRepository.save(outboxEntity)
-                .thenReturn(new LandscapeResponse(saved.getId().toString(), "PENDING"));
+                .flatMap(saved -> outboxService.publishLandscapeCreated(saved)
+                        .thenReturn(new LandscapeResponse(saved.getId().toString(), "PENDING")));
     }
 
     @Override
