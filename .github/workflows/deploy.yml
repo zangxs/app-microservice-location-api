@@ -27,7 +27,7 @@ jobs:
 
       - name: Install common-dto-library
         run: |
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/zangxs/common-dto-library.git
+          git clone https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/zangxs/common-dto-library.git
           cd common-dto-library
           mvn clean install -DskipTests
 
