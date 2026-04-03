@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: app-microservice-location-producer
+  webflux:
+    base-path: /app-microservice-location
+  r2dbc:
+    url: r2dbc:postgresql://${DB_LANDSCAPE_HOST:localhost}:${DB_LANDSCAPE_PORT:5433}/${DB_LANDSCAPE_NAME:landscapedb}
+    username: ${DB_LANDSCAPE_USER:landscape}
+    password: ${DB_LANDSCAPE_PASSWORD:landscape}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    virtual-host: /
+
+server:
+  port: 8001
+
+logging:
+  level:
+    ROOT: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+jwt:
+  secret: ${JWT_KEY:}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+minio:
+  url: ${MINIO_URL:http://localhost:9000}
+  access-key: ${MINIO_ACCESS_KEY:}
+  secret-key: ${MINIO_SECRET_KEY:}
+  bucket: ${MINIO_BUCKET:landscapes}
+
+app:
+  producer-url: ${PRODUCER_URL:http://localhost:8001}
+  landscapes:
+    max-radius: ${MAX_RADIUS:200}
+    max-results: ${MAX_RESULTS:20}
+  outbox:
+    scheduler-delay: ${OUTBOX_SCHEDULER_DELAY:10000}
+    reconciliation-delay: ${RECONCILIATION_DELAY:3600000}
+  rabbitmq:
+    exchange: landscape.exchange
+    queue: landscape.pending.queue
+    routing-key: landscape.pending
+    status-queue: landscape.status.queue
+    status-routing-key: landscape.status
