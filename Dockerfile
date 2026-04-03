@@ -1,6 +1,6 @@
-ARG PAT_TOKEN
-
 FROM maven:3.9-eclipse-temurin-17 AS build
+
+ARG PAT_TOKEN
 
 WORKDIR /build
 
