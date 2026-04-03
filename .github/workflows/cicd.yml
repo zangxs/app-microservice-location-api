@@ -1,9 +1,6 @@
 name: CI/CD
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
@@ -11,14 +8,22 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    env:
-      KEY_VALUE: ${{ secrets.KEY_VALUE }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Instalar dependencias con Maven
-        run: mvn dependency:resolve
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Install common-dto-library
+        run: |
+          git clone https://github.com/zangxs/common-dto-library.git
+          cd common-dto-library
+          mvn clean install -DskipTests
 
       - name: Ejecutar tests con Maven
         run: mvn test
