@@ -2,9 +2,9 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /build
 
-# Install shared-events library from local copy
-COPY common-dto-library /build/lib
-RUN cd /build/lib && mvn clean install -DskipTests -q
+# Install shared-events library from GitHub
+RUN git clone https://github.com/zangxs/common-dto-library.git /build/lib && \
+    cd /build/lib && mvn clean install -DskipTests -q
 
 # Copy pom.xml and download dependencies
 COPY app-microservice-location-app/pom.xml .
