@@ -1,9 +1,11 @@
+ARG PAT_TOKEN
+
 FROM maven:3.9-eclipse-temurin-17 AS build
 
 WORKDIR /build
 
 # Install shared-events library from GitHub
-RUN git clone https://github.com/zangxs/common-dto-library.git /build/lib && \
+RUN git clone https://x-access-token:${PAT_TOKEN}@github.com/zangxs/common-dto-library.git /build/lib && \
     cd /build/lib && mvn clean install -DskipTests -q
 
 # Copy pom.xml and download dependencies
