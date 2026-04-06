@@ -11,15 +11,11 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.UUID;
 
 
@@ -33,6 +29,9 @@ public class S3Service implements IS3Service {
 
     @Value("${minio.url}")
     private String minioUrl;
+
+    @Value("${app.env:local}")
+    private String env;
 
     @Override
     public Mono<String> uploadFile(FilePart filePart, byte[] bytes) {
@@ -49,6 +48,9 @@ public class S3Service implements IS3Service {
                             .build(),
                     RequestBody.fromBytes(bytes)
             );
+            if ("aws".equalsIgnoreCase(env)) {
+                return "https://" + bucket + ".s3.us-east-1.amazonaws.com/" + fileName;
+            }
             return minioUrl + "/" + bucket + "/" + fileName;
         }).subscribeOn(Schedulers.boundedElastic());
     }
