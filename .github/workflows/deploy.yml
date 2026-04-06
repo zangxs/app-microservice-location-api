@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  EC2_HOST: 3.19.62.218
+  EC2_HOST: ${{ secrets.EC2_HOST }}
   EC2_USER: ubuntu
   DEPLOY_PATH: /opt/landscape-app
 
