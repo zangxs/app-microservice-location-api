@@ -41,6 +41,7 @@ minio:
   bucket: ${MINIO_BUCKET:landscapes}
 
 app:
+  env: ${APP_ENV:local}
   producer-url: ${PRODUCER_URL:http://localhost:8001}
   landscapes:
     max-radius: ${MAX_RADIUS:200}

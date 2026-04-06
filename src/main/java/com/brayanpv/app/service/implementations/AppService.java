@@ -38,6 +38,9 @@ public class AppService implements IAppService {
     @Value("${app.producer-url:http://localhost:8001}")
     private String producerUrl;
 
+    @Value("${app.env:local}")
+    private String env;
+
     @Override
     public Mono<LandscapeResponse> uploadFile(LandscapeRequest request) {
         log.info("request received: {}", request.toString());
@@ -134,10 +137,12 @@ public class AppService implements IAppService {
     }
 
 
-    private String buildProxyUrl(String minioUrl, String baseUrl) {
-        String filename = minioUrl.substring(minioUrl.lastIndexOf("/") + 1);
+    private String buildProxyUrl(String imageUrl, String baseUrl) {
+        if ("aws".equalsIgnoreCase(env)) {
+            return imageUrl;
+        }
+        String filename = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
         if (Objects.isNull(baseUrl) || baseUrl.isEmpty()) {
-            // extrae solo el nombre del archivo
             return producerUrl + "/app-microservice-location/images/" + filename;
         }
         return baseUrl + "/app-microservice-location/images/" + filename;

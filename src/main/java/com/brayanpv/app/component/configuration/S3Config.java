@@ -21,15 +21,22 @@ public class S3Config {
     @Value("${minio.secret-key}")
     private String secretKey;
 
+    @Value("${app.env:local}")
+    private String env;
+
     @Bean
     public S3Client s3Client() {
-        return S3Client.builder()
-                .endpointOverride(URI.create(minioUrl))
+        var builder = S3Client.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)
                 ))
-                .region(Region.US_EAST_1)
-                .forcePathStyle(true)  // obligatorio para MinIO
-                .build();
+                .region(Region.US_EAST_1);
+
+        if ("local".equalsIgnoreCase(env)) {
+            builder.endpointOverride(URI.create(minioUrl))
+                    .forcePathStyle(true);
+        }
+
+        return builder.build();
     }
 }
