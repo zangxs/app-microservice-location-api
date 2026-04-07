@@ -18,9 +18,7 @@ public interface IAppController {
     Mono<ResponseEntity<ApiResponse>> uploadLocation(
             @RequestPart("file") FilePart file,
             @RequestPart("title") String title,
-            @RequestPart("description") String description,
-            @RequestPart("latitude") String latitude,
-            @RequestPart("longitude") String longitude);
+            @RequestPart(value = "description", required = false) String description);
 
     Mono<ResponseEntity<ApiResponse>> getNearby(
             @RequestParam(required = false) Double lat,

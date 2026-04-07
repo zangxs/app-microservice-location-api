@@ -78,11 +78,11 @@ class AppServiceTest {
         String email = "test@example.com";
         String landscapeId = UUID.randomUUID().toString();
         LandscapeRequest request = new LandscapeRequest(
-                mockFilePart, "Test Title", "Test Desc", 10.0, 20.0
+                mockFilePart, "Test Title", "Test Desc"
         );
 
         byte[] imageBytes = new byte[]{1, 2, 3};
-        ExifResult exifResult = new ExifResult(imageBytes, null, null);
+        ExifResult exifResult = new ExifResult(imageBytes, 10.0, 20.0);
 
         when(exifService.extractCoordinates(mockFilePart)).thenReturn(Mono.just(exifResult));
         when(s3Service.uploadFile(mockFilePart, imageBytes)).thenReturn(Mono.just("http://minio/bucket/file.jpg"));
@@ -124,7 +124,7 @@ class AppServiceTest {
         String email = "test@example.com";
         String landscapeId = UUID.randomUUID().toString();
         LandscapeRequest request = new LandscapeRequest(
-                mockFilePart, "Test Title", "Test Desc", 10.0, 20.0
+                mockFilePart, "Test Title", "Test Desc"
         );
 
         byte[] imageBytes = new byte[]{1, 2, 3};
@@ -160,6 +160,34 @@ class AppServiceTest {
         verify(landscapeRepository).save(argThat(entity ->
                 entity.getLatitude().equals(4.5709) && entity.getLongitude().equals(-74.2973)
         ));
+    }
+
+    @Test
+    void uploadFileWithoutGpsMetadata() {
+        String userId = "123";
+        String email = "test@example.com";
+        LandscapeRequest request = new LandscapeRequest(
+                mockFilePart, "Test Title", "Test Desc"
+        );
+
+        byte[] imageBytes = new byte[]{1, 2, 3};
+        ExifResult exifResult = new ExifResult(imageBytes, null, null);
+
+        when(exifService.extractCoordinates(mockFilePart)).thenReturn(Mono.just(exifResult));
+
+        Mono<LandscapeResponse> result = appService.uploadFile(request)
+                .contextWrite(ctx -> ctx.put("userId", userId).put("email", email));
+
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof IllegalArgumentException
+                        && throwable.getMessage().equals("Image does not contain GPS metadata")
+                )
+                .verify();
+
+        verify(exifService, times(1)).extractCoordinates(mockFilePart);
+        verify(s3Service, never()).uploadFile(any(), any());
+        verify(landscapeRepository, never()).save(any());
     }
 
     @Test
