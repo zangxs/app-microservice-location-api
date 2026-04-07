@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -36,19 +37,11 @@ public class AppController implements IAppController {
     public Mono<ResponseEntity<ApiResponse>> uploadLocation(
             @RequestPart("file") FilePart file,
             @RequestPart("title") String title,
-            @RequestPart("description") String description,
-            @RequestPart("latitude") String latitude,
-            @RequestPart("longitude") String longitude
+            @RequestPart(value = "description", required = false) String description
     ) {
-        log.info("request received: title={}, lat={}, lng={}", title, latitude, longitude);
+        log.info("request received: title={}", title);
 
-        LandscapeRequest request = new LandscapeRequest(
-                file,
-                title,
-                description,
-                Double.parseDouble(latitude),
-                Double.parseDouble(longitude)
-        );
+        LandscapeRequest request = new LandscapeRequest(file, title, description);
 
         return appService.uploadFile(request)
                 .map(locationResponse -> ResponseEntity.ok(ApiResponse.builder()

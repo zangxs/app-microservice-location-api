@@ -50,10 +50,11 @@ public class AppService implements IAppService {
 
             return exifService.extractCoordinates(request.file())
                     .flatMap(exifResult -> {
-                        Double latitude = exifResult.latitude() != null ? exifResult.latitude() : request.latitude();
-                        Double longitude = exifResult.longitude() != null ? exifResult.longitude() : request.longitude();
+                        if (exifResult.latitude() == null || exifResult.longitude() == null) {
+                            return Mono.error(new IllegalArgumentException("Image does not contain GPS metadata"));
+                        }
                         return s3Service.uploadFile(request.file(), exifResult.bytes())
-                                .flatMap(imageUrl -> saveLandscapeAndCreateOutbox(request, userId, email, latitude, longitude, imageUrl));
+                                .flatMap(imageUrl -> saveLandscapeAndCreateOutbox(request, userId, email, exifResult.latitude(), exifResult.longitude(), imageUrl));
                     });
         });
     }

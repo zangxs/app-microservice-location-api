@@ -68,9 +68,7 @@ class AppControllerTest {
         Mono<ResponseEntity<ApiResponse>> result = appController.uploadLocation(
                 mockFilePart,
                 "Test Title",
-                "Test Description",
-                "10.0",
-                "20.0"
+                "Test Description"
         );
 
         StepVerifier.create(result)

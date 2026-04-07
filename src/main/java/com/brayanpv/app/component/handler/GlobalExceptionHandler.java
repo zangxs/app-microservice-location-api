@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
                 .code(HttpStatus.BAD_REQUEST.value())
                 .data(ex.getMessage())
                 .build();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
 
     }
 
